@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-contract WatchInsurance {
+contract Insurance {
+
+     struct Policy {
+        uint256 premium;
+        uint256 coverageAmount;
+        uint256 startDate;
+        uint256 endDate;
+        bool active;
+    }
     //the addresses that took a policy, in an array
     address [] public policyholders;
     //a mapping that keeps the policy (unique id) taken by the address
@@ -12,6 +20,14 @@ contract WatchInsurance {
     address payable provider;
     //total active plans
     uint256 public totalPremium;
+
+
+
+    //modifier for preventing accidental double-claiming
+    modifier onlyClaimablePolicy {
+        require (policies[msg.sender] > 0, "No active policy to file a claim!");
+        _;
+    }
     
     //constructor to set the address deploying the contract is the owner of the contract
     constructor() {
@@ -57,14 +73,9 @@ contract WatchInsurance {
         provider = user;
     }
 
-    function revokeAccess(address payable user) public {
-        require(msg.sender == provider, "Only owner can revoke access."); 
-        require(user != provider, "Cannot revoke access for the current owner.");
-        provider = payable(msg.sender);
-    }
-
     function destroy() public {
         require(msg.sender == provider, "Only owner can destroy the contract.");
         selfdestruct(provider);
     }
 }
+
